@@ -5,6 +5,7 @@ export default function About() {
     return (
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-20 animate-fade-in">
             <div className="text-center max-w-3xl mx-auto mb-20">
+                <h2 className="text-lg font-bold text-indigo-600 mb-4 tracking-wider uppercase">ProFinTools – Professional Financial Calculators & Tools</h2>
                 <h1 className="text-5xl font-extrabold mb-6 tracking-tight">Financial Accuracy for <span className="text-primary italic">Everyone.</span></h1>
                 <p className="text-secondary text-xl leading-relaxed">
                     FinCalcHub was born out of a simple need: a clean, fast, and completely private place to perform financial calculations without the clutter of ads and trackers.

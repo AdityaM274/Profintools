@@ -6,6 +6,9 @@ import { calculateBMI } from './bmi';
 import { calculateRetirement } from './retirement';
 import { calculateSavingsGoal, calculateInflation, calculateCAGR, calculateGST, calculatePPF, calculateSimpleInterest, calculateCompoundInterest, calculateHRA, calculateNPS } from './finance-utils';
 import * as z from 'zod';
+import { calculateDiscount, calculateROI, calculateMarkup } from './business';
+import { calculateAutoLoan } from './loan-more';
+import { calculateEducationLoan } from './education-loan';
 
 export interface ToolConfig {
     calculationLogic: any;
@@ -514,6 +517,162 @@ export const TOOL_CONFIGS: Record<string, ToolConfig> = {
             ],
             chartLabels: ['Principal', 'Interest'],
             chartDataFields: ['totalInvestment', 'totalInterest']
+        }
+    },
+    'discount': {
+        calculationLogic: calculateDiscount,
+        inputSchema: z.object({
+            originalPrice: z.number().min(1),
+            discountType: z.enum(['percentage', 'fixed']),
+            discountValue: z.number().min(0),
+        }),
+        defaultValues: {
+            originalPrice: 1000,
+            discountType: 'percentage',
+            discountValue: 10,
+        },
+        inputFields: [
+            { name: 'originalPrice', label: 'Original Price', type: 'number', min: 1, max: 1000000, step: 100, unit: '$' },
+            {
+                name: 'discountType',
+                label: 'Discount Type',
+                type: 'select',
+                unit: '-',
+                options: [
+                    { label: 'Percentage (%)', value: 'percentage' },
+                    { label: 'Fixed Amount ($)', value: 'fixed' }
+                ]
+            },
+            { name: 'discountValue', label: 'Discount Value', type: 'number', min: 0, max: 100000, step: 5, unit: ' ' },
+        ],
+        resultMeta: {
+            primaryField: 'finalPrice',
+            primaryLabel: 'Final Price',
+            secondaryFields: [
+                { name: 'savedAmount', label: 'You Save' }
+            ],
+            chartLabels: ['Payable', 'Saved'],
+            chartDataFields: ['finalPrice', 'savedAmount']
+        }
+    },
+    'roi': {
+        calculationLogic: calculateROI,
+        inputSchema: z.object({
+            initialInvestment: z.number().min(1),
+            finalValue: z.number().min(0),
+            expenses: z.number().min(0),
+        }),
+        defaultValues: {
+            initialInvestment: 10000,
+            finalValue: 15000,
+            expenses: 500,
+        },
+        inputFields: [
+            { name: 'initialInvestment', label: 'Initial Investment', type: 'number', min: 100, max: 10000000, step: 1000, unit: '$' },
+            { name: 'finalValue', label: 'Final Value', type: 'number', min: 0, max: 10000000, step: 1000, unit: '$' },
+            { name: 'expenses', label: 'Expenses', type: 'number', min: 0, max: 100000, step: 100, unit: '$' },
+        ],
+        resultMeta: {
+            primaryField: 'roi',
+            primaryLabel: 'ROI (%)',
+            secondaryFields: [
+                { name: 'netProfit', label: 'Net Profit' }
+            ],
+            chartLabels: ['Investment', 'Profit', 'Expenses'],
+            chartDataFields: ['initialInvestment', 'netProfit', 'expenses'] // Note: chart logic depends on implementation, usually we just show breakdown.
+        }
+    },
+    'markup': {
+        calculationLogic: calculateMarkup,
+        inputSchema: z.object({
+            costPrice: z.number().min(1),
+            markupPercentage: z.number().min(0),
+        }),
+        defaultValues: {
+            costPrice: 100,
+            markupPercentage: 20,
+        },
+        inputFields: [
+            { name: 'costPrice', label: 'Cost Price', type: 'number', min: 1, max: 1000000, step: 10, unit: '$' },
+            { name: 'markupPercentage', label: 'Markup', type: 'number', min: 0, max: 500, step: 5, unit: '%' },
+        ],
+        resultMeta: {
+            primaryField: 'sellingPrice',
+            primaryLabel: 'Selling Price',
+            secondaryFields: [
+                { name: 'grossProfit', label: 'Gross Profit' }
+            ],
+            chartLabels: ['Cost', 'Profit'],
+            chartDataFields: ['costPrice', 'grossProfit']
+        }
+    },
+    'education-loan': {
+        calculationLogic: calculateEducationLoan,
+        inputSchema: z.object({
+            loanAmount: z.number().min(1000).max(100000000),
+            interestRate: z.number().min(0.1).max(30),
+            tenure: z.number().min(1).max(30),
+            moratoriumPeriod: z.number().min(0).max(60).optional(),
+        }),
+        defaultValues: {
+            loanAmount: 1000000,
+            interestRate: 8.5,
+            tenure: 10,
+            moratoriumPeriod: 0,
+        },
+        inputFields: [
+            { name: 'loanAmount', label: 'Loan Amount', type: 'number', min: 10000, max: 20000000, step: 10000, unit: '₹' },
+            { name: 'interestRate', label: 'Interest Rate', type: 'number', min: 1, max: 20, step: 0.1, unit: '%' },
+            { name: 'tenure', label: 'Repayment Tenure', type: 'number', min: 1, max: 20, step: 1, unit: 'Years' },
+            { name: 'moratoriumPeriod', label: 'Moratorium (Month)', type: 'number', min: 0, max: 60, step: 6, unit: 'Mos' },
+        ],
+        resultMeta: {
+            primaryField: 'emi',
+            primaryLabel: 'Monthly EMI',
+            secondaryFields: [
+                { name: 'totalInterest', label: 'Total Interest' },
+                { name: 'totalPayment', label: 'Total Payment' },
+                { name: 'effectivePrincipal', label: 'Principal + Moratorium Int.' }
+            ],
+            chartLabels: ['Principal', 'Interest'],
+            chartDataFields: ['effectivePrincipal', 'totalInterest']
+        }
+    },
+    'auto-loan': {
+        calculationLogic: calculateAutoLoan,
+        inputSchema: z.object({
+            vehiclePrice: z.number().min(1000),
+            downPayment: z.number().min(0),
+            tradeInValue: z.number().min(0),
+            interestRate: z.number().min(0.1),
+            loanTerm: z.number().min(12).max(96),
+            salesTax: z.number().min(0).max(20),
+        }),
+        defaultValues: {
+            vehiclePrice: 30000,
+            downPayment: 5000,
+            tradeInValue: 0,
+            interestRate: 5,
+            loanTerm: 60, // 5 years
+            salesTax: 0,
+        },
+        inputFields: [
+            { name: 'vehiclePrice', label: 'Vehicle Price', type: 'number', min: 1000, max: 200000, step: 1000, unit: '$' },
+            { name: 'downPayment', label: 'Down Payment', type: 'number', min: 0, max: 100000, step: 500, unit: '$' },
+            { name: 'tradeInValue', label: 'Trade-In Value', type: 'number', min: 0, max: 100000, step: 500, unit: '$' },
+            { name: 'interestRate', label: 'Interest Rate', type: 'number', min: 0.1, max: 30, step: 0.1, unit: '%' },
+            { name: 'loanTerm', label: 'Loan Term (Months)', type: 'number', min: 12, max: 96, step: 12, unit: 'Mos' },
+            { name: 'salesTax', label: 'Sales Tax', type: 'number', min: 0, max: 20, step: 0.1, unit: '%' },
+        ],
+        resultMeta: {
+            primaryField: 'monthlyPayment',
+            primaryLabel: 'Monthly Payment',
+            secondaryFields: [
+                { name: 'totalInterest', label: 'Total Interest' },
+                { name: 'totalPayment', label: 'Total Payment' }
+            ],
+            chartLabels: ['Loan Amount', 'Total Interest'],
+            chartDataFields: ['loanAmount', 'totalInterest']
         }
     }
 };

@@ -141,5 +141,46 @@ export const TOOLS: Tool[] = [
         description: 'Estimate your pension and lump sum amount from National Pension System.',
         icon: 'ShieldCheck',
         category: 'Retirement'
+    },
+    {
+        id: 'discount',
+        name: 'Discount Calculator',
+        slug: 'discount-calculator',
+        description: 'Calculate the final price after applying percentage or fixed discounts.',
+        icon: 'PiggyBank',
+        category: 'Personal Finance'
+    },
+    {
+        id: 'roi',
+        name: 'ROI Calculator',
+        slug: 'roi-calculator',
+        description: 'Measure the return on investment (ROI) for your business or asset.',
+        icon: 'TrendingUp',
+        category: 'Business'
+    },
+    {
+        id: 'markup',
+        name: 'Markup Calculator',
+        slug: 'markup-calculator',
+        description: 'Calculate the selling price and profit margin for your products.',
+        icon: 'Calculator',
+        category: 'Business'
+    },
+    {
+        id: 'auto-loan',
+        name: 'Auto Loan Calculator',
+        slug: 'auto-loan-calculator',
+        description: 'Estimate your monthly car payments and total interest.',
+        icon: 'Calculator',
+        category: 'Loans & Credit'
+    },
+    {
+        id: 'education-loan',
+        name: 'Education Loan EMI Calculator',
+        slug: 'education-loan-emi-calculator',
+        description: 'Calculate your monthly education loan installments with moratorium support.',
+        icon: 'BookOpen', // Ensure specific icon if available, else fallback
+        category: 'Loans & Credit',
+        featured: true
     }
 ];

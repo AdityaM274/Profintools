@@ -37,28 +37,45 @@ const Navbar = () => {
                 </Link>
 
                 {/* Desktop Menu - Centered Search & Categories */}
-                <div className="hidden md:flex flex-1 mx-10 items-center justify-center max-w-2xl relative">
-                    <div className="relative w-full">
+                <div className="hidden md:flex flex-1 mx-10 items-center justify-center max-w-xl relative">
+                    <div className="relative w-full group">
                         <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                            <Search className="w-4 h-4 text-secondary" />
+                            <Search className="w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
                         </div>
                         <input
                             type="text"
-                            placeholder="Find a calculator..."
-                            className="w-full bg-input/50 border-0 rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 transition-all"
+                            placeholder="Search 100+ tools..."
+                            className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-full py-2.5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all shadow-inner"
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    const val = e.currentTarget.value;
+                                    if (val) {
+                                        window.location.href = `/?search=${encodeURIComponent(val)}#tools`;
+                                    }
+                                }
+                            }}
                         />
                     </div>
                 </div>
 
-                <div className="hidden md:flex items-center gap-6">
-                    <span className="text-xs font-bold text-secondary uppercase tracking-wider">IN INR</span>
+                <div className="hidden md:flex items-center gap-4">
+                    {/* Currency Toggle (Mock) */}
+                    <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-full p-1 border border-slate-200 dark:border-slate-700">
+                        <span className="bg-white dark:bg-slate-600 shadow-sm text-xs font-bold px-3 py-1 rounded-full text-slate-800 dark:text-white">INR</span>
+                        <span className="text-xs font-semibold px-3 text-slate-400">USD</span>
+                    </div>
 
                     {!user ? (
-                        <Link href="/login" className="bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2 rounded-full text-sm font-bold transition-all shadow-lg shadow-blue-500/30">
-                            Sign In
-                        </Link>
+                        <>
+                            <Link href="/login" className="text-slate-600 dark:text-slate-300 hover:text-indigo-600 font-semibold text-sm px-3 transition-colors">
+                                Sign In
+                            </Link>
+                            <Link href="/pricing" className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-full text-sm font-bold transition-all shadow-lg hover:shadow-indigo-500/30 flex items-center gap-2">
+                                <ShieldCheck className="w-4 h-4" /> Go Premium
+                            </Link>
+                        </>
                     ) : (
-                        <Link href="/dashboard" className="flex items-center gap-2 text-sm font-bold hover:text-primary transition-colors">
+                        <Link href="/dashboard" className="flex items-center gap-2 text-sm font-bold hover:text-indigo-600 transition-colors bg-slate-100 px-4 py-2 rounded-full">
                             <User className="w-4 h-4" /> My Account
                         </Link>
                     )}

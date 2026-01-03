@@ -8,14 +8,14 @@ import {
     TrendingUp, ShieldCheck, ExternalLink, LogOut
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
-import { auth as firebaseAuth } from '@/lib/firebase';
-import { signOut } from 'firebase/auth';
+import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 
 export default function Dashboard() {
     const { user, loading, isPremium } = useAuth();
     const router = useRouter();
     const [recentHistory, setRecentHistory] = useState<any[]>([]);
+    const supabase = createClient();
 
     useEffect(() => {
         if (!loading && !user) {
@@ -31,7 +31,7 @@ export default function Dashboard() {
     }, []);
 
     const handleLogout = async () => {
-        await signOut(firebaseAuth);
+        await supabase.auth.signOut();
         router.push('/');
     };
 
@@ -47,7 +47,7 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 animate-fade-in">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
                 <div>
-                    <h1 className="text-3xl font-extrabold tracking-tight">Welcome back, {user.displayName || 'User'}</h1>
+                    <h1 className="text-3xl font-extrabold tracking-tight">Welcome back, {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}</h1>
                     <p className="text-secondary">Manage your account and premium features.</p>
                 </div>
                 <button

@@ -265,37 +265,35 @@ const ToolInterface: React.FC<ToolInterfaceProps> = ({
                         {/* Ad In-Content / Below Summary */}
                         <AdUnit slot={AD_SLOTS.TOOL_IN_CONTENT} className="w-full" showLabel={true} />
 
-                        {result?.amortizationSchedule && tool.id === 'loan-emi' && (
+                        {/* Amortization Table Logic */}
+                        {(result?.amortizationSchedule || result?.amortization) && ['loan-emi', 'education-loan', 'auto-loan'].includes(tool.id) && (
                             <div className="glass-card p-6 overflow-hidden">
-                                <h3 className="text-lg font-bold mb-4">Yearly Breakdown</h3>
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-left text-sm">
-                                        <thead>
-                                            <tr className="border-b border-border">
-                                                <th className="py-3 font-bold">Year</th>
+                                <h3 className="text-lg font-bold mb-4">Payment Schedule</h3>
+                                <div className="overflow-x-auto max-h-[500px] scrollbar-thin">
+                                    <table className="w-full text-left text-sm relative">
+                                        <thead className="sticky top-0 bg-white dark:bg-slate-900 border-b border-border z-10">
+                                            <tr>
+                                                <th className="py-3 font-bold">Month</th>
                                                 <th className="py-3 font-bold">Principal</th>
                                                 <th className="py-3 font-bold">Interest</th>
                                                 <th className="py-3 font-bold">Balance</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {Array.from({ length: Math.ceil(result.amortizationSchedule.length / 12) }).map((_, i) => {
-                                                const year = i + 1;
-                                                const yearData = result.amortizationSchedule.slice(i * 12, (i + 1) * 12);
-                                                const yrPrincipal = yearData.reduce((acc: any, c: any) => acc + c.principalPaid, 0);
-                                                const yrInterest = yearData.reduce((acc: any, c: any) => acc + c.interestPaid, 0);
-                                                const bal = yearData[yearData.length - 1].remainingBalance;
-                                                return (
-                                                    <tr key={year} className="border-b border-border/50 hover:bg-input/30 transition-colors">
-                                                        <td className="py-3">{year}</td>
-                                                        <td className="py-3">{formatCurrency(yrPrincipal)}</td>
-                                                        <td className="py-3">{formatCurrency(yrInterest)}</td>
-                                                        <td className="py-3">{formatCurrency(bal)}</td>
-                                                    </tr>
-                                                );
-                                            })}
+                                            {/* Show first 60 months (5 years) to avoid massive rendering, create pagination if really needed later */}
+                                            {(result.amortizationSchedule || result.amortization || []).slice(0, 60).map((row: any, i: number) => (
+                                                <tr key={i} className="border-b border-border/50 hover:bg-input/30 transition-colors">
+                                                    <td className="py-3 text-secondary">{row.month || i + 1}</td>
+                                                    <td className="py-3">{formatCurrency(row.principalPaid)}</td>
+                                                    <td className="py-3">{formatCurrency(row.interestPaid)}</td>
+                                                    <td className="py-3">{formatCurrency(row.remainingBalance ?? row.balance)}</td>
+                                                </tr>
+                                            ))}
                                         </tbody>
                                     </table>
+                                    {(result.amortizationSchedule || result.amortization || []).length > 60 && (
+                                        <p className="text-center text-xs text-secondary mt-4">Showing first 60 months only.</p>
+                                    )}
                                 </div>
                             </div>
                         )}

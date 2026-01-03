@@ -3,8 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { createClient } from '@/lib/supabase/client';
 import { Calculator, Mail, Lock, User, Chrome, ArrowRight, AlertCircle } from 'lucide-react';
 
 export default function Signup() {
@@ -14,24 +13,27 @@ export default function Signup() {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const supabase = createClient();
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
         try {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            await updateProfile(userCredential.user, { displayName: name });
-
-            // Notify backend to sync user
-            const idToken = await userCredential.user.getIdToken();
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/users/sync`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${idToken}`,
-                    'Content-Type': 'application/json'
-                }
+            const { error: signUpError } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        full_name: name,
+                    },
+                },
             });
+
+            if (signUpError) throw signUpError;
+
+            // Supabase trigger automatically creates profile.
+            // No need to manually sync unless we have very specific needs not covered by triggers.
 
             router.push('/dashboard');
         } catch (err: any) {
@@ -42,10 +44,14 @@ export default function Signup() {
     };
 
     const handleGoogleLogin = async () => {
-        const provider = new GoogleAuthProvider();
         try {
-            await signInWithPopup(auth, provider);
-            router.push('/dashboard');
+            const { error: authError } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/dashboard`,
+                },
+            });
+            if (authError) throw authError;
         } catch (err: any) {
             setError(err.message);
         }

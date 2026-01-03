@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, createContext, useContext } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { createClient } from '@/lib/supabase/client';
+import { User } from '@supabase/supabase-js';
 
 interface AuthContextType {
     user: User | null;
@@ -21,24 +21,47 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [loading, setLoading] = useState(true);
     const [isPremium, setIsPremium] = useState(false);
 
-    useEffect(() => {
-        if (!auth) {
-            setLoading(false);
-            return;
-        }
+    // Create client inside component or outside? 
+    // Best practice:createClientComponentClient inside components for SSR safety, 
+    // but here we use our singleton helper for client side only.
+    const supabase = createClient();
 
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            setUser(user as User | null);
-            if (user) {
-                const premiumStatus = localStorage.getItem('isPremium') === 'true';
-                setIsPremium(premiumStatus);
-            } else {
-                setIsPremium(false);
+    useEffect(() => {
+        const checkUser = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            setUser(session?.user ?? null);
+
+            if (session?.user) {
+                // Fetch premium status from profiles
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('is_premium')
+                    .eq('id', session.user.id)
+                    .single();
+
+                setIsPremium(data?.is_premium || false);
             }
             setLoading(false);
-        });
 
-        return () => unsubscribe();
+            const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event: any, session: any) => {
+                setUser(session?.user ?? null);
+                if (session?.user) {
+                    const { data } = await supabase
+                        .from('profiles')
+                        .select('is_premium')
+                        .eq('id', session.user.id)
+                        .single();
+                    setIsPremium(data?.is_premium || false);
+                } else {
+                    setIsPremium(false);
+                }
+                setLoading(false);
+            });
+
+            return () => subscription?.unsubscribe();
+        };
+
+        checkUser();
     }, []);
 
     return (

@@ -13,11 +13,27 @@ export const useSettings = () => {
     useEffect(() => {
         const fetchSettings = async () => {
             try {
-                // In a real scenario we might cache this or use SWR/React Query
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/settings`);
-                if (res.ok) {
-                    const data = await res.json();
-                    setSettings(data);
+                // Fetch from Supabase
+                const { createClient } = await import('@/lib/supabase/client');
+                const supabase = createClient();
+
+                const { data, error } = await supabase
+                    .from('settings')
+                    .select('*')
+                    .single();
+
+                if (data && !error) {
+                    setSettings({
+                        maintenanceMode: data.maintenance_mode,
+                        adsEnabled: data.ads_enabled,
+                        googlePublisherId: data.google_publisher_id,
+                        adSlots: data.ad_slots || {},
+                        affiliateAds: data.affiliate_ads || [],
+                        disabledTools: data.disabled_tools || []
+                    });
+                } else if (error) {
+                    // console.error("Supabase Settings Error:", error);
+                    // Use default if table is empty or error
                 }
             } catch (error) {
                 console.error("Failed to fetch settings", error);

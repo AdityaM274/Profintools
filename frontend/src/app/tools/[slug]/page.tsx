@@ -5,6 +5,8 @@ import ToolInterface from '@/components/ToolInterface';
 import AdUnit from '@/components/AdUnit';
 import { AD_SLOTS } from '@/config/ads';
 
+import { TOOL_CONTENT_REGISTRY } from '@/content/content-registry';
+
 export async function generateStaticParams() {
     return TOOLS.map((tool) => ({
         slug: tool.slug,
@@ -19,12 +21,17 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
         notFound();
     }
 
+    const ContentComponent = TOOL_CONTENT_REGISTRY[slug];
+
     return (
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-10">
             <div className="flex flex-col lg:flex-row gap-8">
                 {/* Main Content */}
                 <div className="flex-1 min-w-0">
                     <ToolInterface tool={tool} />
+
+                    {/* SEO Content / Guide */}
+                    {ContentComponent && <ContentComponent />}
 
                     <div className="mt-12">
                         <AdUnit slot={AD_SLOTS.TOOL_FOOTER} className="w-full" />
@@ -43,5 +50,4 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
             </div>
         </div>
     );
-
 }

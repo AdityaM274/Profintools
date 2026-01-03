@@ -3,8 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { createClient } from '@/lib/supabase/client';
 import { Calculator, Mail, Lock, Chrome, ArrowRight, AlertCircle } from 'lucide-react';
 
 export default function Login() {
@@ -13,13 +12,20 @@ export default function Login() {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const supabase = createClient();
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
         try {
-            await signInWithEmailAndPassword(auth, email, password);
+            const { error: authError } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            if (authError) throw authError;
+
             router.push('/dashboard');
         } catch (err: any) {
             setError(err.message || 'Failed to sign in');
@@ -29,10 +35,14 @@ export default function Login() {
     };
 
     const handleGoogleLogin = async () => {
-        const provider = new GoogleAuthProvider();
         try {
-            await signInWithPopup(auth, provider);
-            router.push('/dashboard');
+            const { error: authError } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/dashboard`,
+                },
+            });
+            if (authError) throw authError;
         } catch (err: any) {
             setError(err.message);
         }
